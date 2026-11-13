@@ -1,0 +1,494 @@
+
+Build a complete beginner-friendly full-stack project called AI Response Evaluator.
+
+Goal
+
+Create an application that demonstrates concepts related to:
+
+* supervised fine-tuning
+* human preference data
+* RLHF
+* reward modeling
+* model evaluation
+* instruction following
+* response ranking
+* iterative model improvement
+
+The application should allow a user to enter a prompt, generate two different AI responses, compare them side by side, evaluate them using a rubric, select the better response, explain why it is better, and save that human preference data for later analysis.
+
+This is an educational portfolio project. Do not implement real large-scale RLHF or PPO training. Instead, simulate the important workflow in a clear, understandable way.
+
+Technology Stack
+
+Use:
+
+* Python
+* Streamlit
+* OpenAI API
+* Pandas
+* SQLite
+* Matplotlib
+* scikit-learn where useful
+* python-dotenv
+* pytest for basic tests
+
+Keep the project simple enough for a beginner to understand.
+
+Main Application Flow
+
+The app should work like this:
+
+1. User enters a prompt.
+2. User can optionally specify constraints.
+3. The application generates Response A.
+4. The application generates Response B separately so the outputs differ.
+5. Display both responses side by side.
+6. Let the evaluator score each response.
+7. Let the evaluator choose:
+    * Response A is better
+    * Response B is better
+    * Tie
+8. Ask the evaluator to provide a short rationale.
+9. Save all data into SQLite.
+10. Display evaluation statistics in a dashboard.
+11. Allow exporting collected human-preference data to CSV.
+
+Example Prompts
+
+Include a page containing sample evaluation prompts such as:
+
+* Explain gravity to a 7-year-old in no more than 3 sentences.
+* Explain photosynthesis to a middle-school student using simple language and one example.
+* Rewrite “Send me the report today” to sound more polite without changing the meaning.
+* Explain the difference between weather and climate in under 100 words.
+* Give a beginner-friendly explanation of machine learning without technical jargon.
+* Explain why the sky appears blue to a 12-year-old.
+* Write a professional email asking a professor for a two-day extension, under 120 words.
+* Give three benefits of exercise without making medical claims.
+* Summarize a paragraph in exactly two sentences.
+* Answer a question using only information from a supplied passage.
+
+Let users click a sample prompt to populate the input.
+
+Evaluation Rubric
+
+Allow evaluators to score each response from 1 to 5 on:
+
+1. Correctness
+2. Instruction Following
+3. Relevance
+4. Clarity
+5. Completeness
+6. Style
+
+Display short descriptions for every category.
+
+For example:
+
+Correctness:
+Does the answer contain accurate information?
+
+Instruction Following:
+Did the answer satisfy all explicit user requirements?
+
+Relevance:
+Does the response stay focused on the request?
+
+Clarity:
+Is the response easy to understand?
+
+Completeness:
+Does it address all important parts of the request?
+
+Style:
+Is the tone and structure appropriate?
+
+Calculate an overall average score for each response.
+
+Preference Data
+
+Store the following fields:
+
+* evaluation_id
+* timestamp
+* prompt
+* constraints
+* response_a
+* response_b
+* preferred_response
+* rationale
+* A_correctness
+* A_instruction_following
+* A_relevance
+* A_clarity
+* A_completeness
+* A_style
+* A_average_score
+* B_correctness
+* B_instruction_following
+* B_relevance
+* B_clarity
+* B_completeness
+* B_style
+* B_average_score
+
+Use SQLite.
+
+Create database initialization automatically if the database does not exist.
+
+OpenAI Integration
+
+Use the current official OpenAI Python SDK.
+
+Load the API key from:
+
+OPENAI_API_KEY
+
+inside a .env file.
+
+Never hardcode the API key.
+
+Create .env.example containing:
+
+OPENAI_API_KEY=your_api_key_here
+
+Add .env to .gitignore.
+
+Create a helper module for API calls rather than putting API logic directly inside the Streamlit UI.
+
+Make the model configurable through an environment variable such as:
+
+OPENAI_MODEL
+
+Provide a reasonable default.
+
+Generate Response A and Response B independently.
+
+Allow configuration of temperature or another suitable variability mechanism if supported.
+
+Handle API errors gracefully.
+
+If no API key exists, display a helpful message instead of crashing.
+
+Streamlit Pages
+
+Create a multi-page Streamlit application.
+
+Page 1 — Home
+
+Explain:
+
+* what the project does
+* what human preference data is
+* what SFT is
+* what RLHF is
+* what a reward model is
+* why evaluations matter
+
+Keep explanations short and beginner friendly.
+
+Include a simple workflow diagram using text or Mermaid-compatible markdown if practical:
+
+Prompt
+↓
+Generate Responses
+↓
+Human Evaluation
+↓
+Preference Data
+↓
+Analyze Results
+↓
+Improve Model
+
+Page 2 — Compare Responses
+
+Provide:
+
+Prompt input
+
+Optional constraints field
+
+Generate Responses button
+
+Display Response A and Response B side by side.
+
+Below each response show rubric sliders from 1–5.
+
+Then ask:
+
+Which response is better?
+
+Options:
+
+* Response A
+* Response B
+* Tie
+
+Include a rationale text box.
+
+Include a Save Evaluation button.
+
+Validate that the required fields are completed.
+
+Show a success confirmation after saving.
+
+Page 3 — Evaluation History
+
+Display previous evaluations in a Pandas dataframe.
+
+Allow filtering by:
+
+* preferred response
+* date
+* search text
+
+Allow selecting an evaluation to inspect the full prompt, responses, scores, and rationale.
+
+Provide:
+
+Download as CSV
+
+button.
+
+Page 4 — Analytics Dashboard
+
+Display:
+
+* total evaluations
+* percentage preferring A
+* percentage preferring B
+* percentage tied
+* average score for Response A
+* average score for Response B
+* average rubric score by category
+* preference counts
+
+Use Matplotlib charts.
+
+Include at least:
+
+* bar chart of preference counts
+* bar chart comparing average rubric scores
+* trend chart of evaluation scores over time when enough data exists
+
+Do not use Seaborn.
+
+Page 5 — Reward Model Demo
+
+Create a simple educational demonstration of a reward model.
+
+Using the human preference dataset, construct features from rubric scores such as:
+
+* correctness
+* instruction following
+* relevance
+* clarity
+* completeness
+* style
+
+Train a simple logistic regression model using scikit-learn to predict whether Response A or Response B is preferred.
+
+Exclude ties from training.
+
+Explain clearly that this is only a toy approximation of reward modeling and not how production-scale RLHF systems necessarily work.
+
+Show:
+
+* number of training examples
+* model accuracy if enough data exists
+* feature coefficients
+* predicted preference for a selected evaluation
+
+If there is insufficient training data, display an explanation asking the user to collect more examples.
+
+Page 6 — Concepts
+
+Explain these concepts in simple language:
+
+* Pretraining
+* Post-training
+* Supervised Fine-Tuning
+* Human Feedback
+* Preference Data
+* Reward Model
+* Reward Signal
+* Reinforcement Learning
+* RLHF
+* Reward Hacking
+* Evaluation
+* Hill Climbing / Iterative Improvement
+
+Relate them directly to this project.
+
+Reward Hacking Demonstration
+
+Add a small interactive educational demo.
+
+Create a hypothetical scoring rule that rewards politeness too heavily.
+
+Example original request:
+
+“Rewrite ‘I need your answer today’ to sound more polite without changing the deadline.”
+
+Response 1:
+
+“Could you please provide your answer by the end of today?”
+
+Response 2:
+
+“Whenever you have a chance, I would really appreciate hearing from you.”
+
+Explain:
+
+Response 2 may sound more polite but fails to preserve the deadline.
+
+Show how a poorly designed reward system focused only on politeness could incorrectly score Response 2 higher.
+
+Explain that this illustrates reward hacking or reward misalignment.
+
+Project Structure
+
+Use a clean structure similar to:
+
+ai-response-evaluator/
+
+app.py
+
+pages/
+1_Compare_Responses.py
+2_Evaluation_History.py
+3_Analytics.py
+4_Reward_Model.py
+5_Concepts.py
+
+src/
+init.py
+openai_client.py
+database.py
+evaluation.py
+reward_model.py
+analytics.py
+
+data/
+.gitkeep
+
+tests/
+test_database.py
+test_evaluation.py
+
+requirements.txt
+README.md
+.env.example
+.gitignore
+
+You may improve the structure if there is a cleaner solution.
+
+UI Requirements
+
+Use a clean professional interface.
+
+Use Streamlit columns for Response A and Response B.
+
+Use headings and explanatory text.
+
+Do not over-design the interface.
+
+Make it appropriate for a portfolio or fellowship submission.
+
+Use terminology clearly enough that someone unfamiliar with RLHF can understand the project.
+
+README
+
+Create a strong README containing:
+
+1. Project title
+2. Short description
+3. Why the project matters
+4. Key concepts demonstrated
+5. Features
+6. Architecture
+7. Technology stack
+8. Installation
+9. Environment setup
+10. How to run
+11. Example workflow
+12. Database structure
+13. Reward model explanation
+14. Limitations
+15. Future improvements
+
+Include commands such as:
+
+python -m venv venv
+
+macOS/Linux:
+
+source venv/bin/activate
+
+Windows:
+
+venv\Scripts\activate
+
+pip install -r requirements.txt
+
+streamlit run app.py
+
+Explain how to create .env.
+
+Testing
+
+Add basic tests for:
+
+* database initialization
+* saving an evaluation
+* retrieving evaluations
+* score calculation
+* validation logic
+
+Avoid tests that require a live OpenAI API request.
+
+Code Quality
+
+Use:
+
+* type hints where reasonable
+* docstrings
+* modular functions
+* error handling
+* clear variable names
+* comments only where useful
+
+Avoid unnecessary complexity.
+
+Do not leave placeholder code such as:
+
+TODO
+
+pass
+
+implement later
+
+The app should run after installation.
+
+Important
+
+Before finishing:
+
+1. Inspect the full project.
+2. Fix import errors.
+3. Check Streamlit page paths.
+4. Verify database creation.
+5. Verify .env handling.
+6. Verify CSV export.
+7. Run tests.
+8. Fix any failing tests.
+9. Make sure the README instructions match the actual project.
+
+At the end, give me:
+
+* a summary of what you built
+* the final project directory tree
+* exact commands to install and run it
+* instructions for adding the OpenAI API key
+* any important limitations
