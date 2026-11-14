@@ -1,5 +1,9 @@
 # AI Response Evaluator
 
+![AI Response Evaluator application overview](docs/images/application-overview.png)
+
+*AI-generated application overview. This is an illustration, not a screenshot or measured evaluation results.*
+
 A beginner-friendly Python application for comparing AI answers and collecting human preference data. Generate two responses to the same prompt, score them with a six-category rubric, choose a preferred answer, and explore the results in a local dashboard.
 
 This is an educational portfolio project. It demonstrates the feedback and evaluation workflow behind model improvement; it does not fine-tune a language model or run large-scale RLHF.
@@ -75,6 +79,9 @@ AI-Response-Evaluator/
 │   ├── reward_model.py
 │   ├── sample_prompts.py
 │   └── ui.py
+├── docs/
+│   ├── images/application-overview.png
+│   └── image-generation.md
 ├── tests/
 ├── data/
 │   └── .gitkeep
@@ -100,6 +107,7 @@ The database and your `.env` file are created locally and are not committed.
 | SQLite | Durable local storage; included with Python |
 | Matplotlib | Preference, rubric, and trend charts |
 | scikit-learn | Logistic regression and a reproducible train/test split |
+| NumPy | Validate numerical features for the toy classifier |
 | python-dotenv | Read project configuration from `.env` |
 | pytest | Automated tests without live OpenAI requests |
 
@@ -216,7 +224,7 @@ Tests use temporary databases and mocked API responses. They cover validation, s
 8. Collect more judgments and review **Analytics Dashboard**. When enough eligible examples exist, open **Reward Model Demo**.
 9. Revise a prompt or constraint based on observed failures, generate again, and compare the new results. The app does not automatically improve the underlying language model.
 
-Each candidate is generated in a separate API request. A uses a direct writing approach; B uses alternative wording or organization when the task allows it. Both receive the same task and constraints, and neither receives the other's answer. If the answers are identical, B gets one independent retry. Persistent duplicates, incomplete responses, refusals, and API errors produce a helpful message rather than a fabricated or partial pair.
+Each candidate is generated in a separate API request. A uses a direct writing approach; B uses alternative wording or organization when the task allows it. Both receive the same task and constraints, and neither receives the other's answer. If the answers are identical, B gets one independent retry. The SDK can also retry a failed HTTP request once, so total HTTP attempts can exceed the number of candidate-generation requests. Persistent duplicates, incomplete responses, refusals, and API errors produce a helpful message rather than a fabricated or partial pair.
 
 ## Database structure and exports
 
@@ -283,3 +291,50 @@ The **Concepts** page also provides an interactive reward-misalignment example. 
 - Add reviewed exports for preference-training or SFT workflows without assuming every chosen answer is correct.
 - Explore text-based reward models and compare them with the simple rubric baseline.
 - Add authentication, storage migrations, and deployment safeguards if the app becomes a shared service.
+
+
+## Full application process
+
+1. `app.py` registers all seven pages; sample choices populate session inputs.
+2. `src/config.py` reads `.env` and environment settings without exposing the key.
+3. `src/openai_client.py` makes independent Responses API calls. It accepts only complete, distinct text outputs and handles missing credentials and API failures.
+4. The comparison page keeps the original prompt with its responses. You supply six scores per answer, a preference, and a rationale.
+5. `src/evaluation.py` validates the feedback and calculates averages. `src/database.py` saves it with an idempotent UUID in SQLite.
+6. History retrieves fresh records, applies filters, shows full details, and exports CSV. `src/analytics.py` calculates chart data.
+7. `src/reward_model.py` excludes ties, constructs A-minus-B rating features, splits data, trains logistic regression, and reports held-out performance.
+8. Review weaknesses, revise instructions, and collect new evaluations. The response-generating model is never trained by this application.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| Generate button is disabled | Add a real `OPENAI_API_KEY` to `.env`; an exported environment variable takes priority over the file. |
+| Model or sampling request rejected | Verify model access and set `OPENAI_USE_TEMPERATURE=false` if that model does not support temperature. |
+| Response is incomplete | Shorten the request or raise `OPENAI_MAX_OUTPUT_TOKENS` within the chosen model's supported limits. |
+| Database cannot open | Make sure `EVALUATOR_DB_PATH` names a file in a writable folder. |
+| Reward demo cannot train | Collect at least 10 non-tied evaluations, including at least four A and four B preferences. Do not manufacture preferences to meet the threshold. |
+| An edited prompt cannot be saved | Generate a new response pair, or restore the prompt and constraints used for the current pair. |
+
+## Development and Git publishing
+
+From the project folder with the virtual environment active:
+
+```sh
+python -m pytest
+python -m compileall -q app.py pages src tests
+git diff --check
+git status --short
+```
+
+Review changes, then publish the application and documentation:
+
+```sh
+git add app.py pages src tests data/.gitkeep .streamlit/config.toml .env.example .gitignore pytest.ini requirements.txt README.md docs
+git diff --cached --stat
+git commit -m "Build AI Response Evaluator with documentation and overview image"
+git push origin main
+```
+
+The configured repository is [sreytouch/AI-Response-Evaluator](https://github.com/sreytouch/AI-Response-Evaluator). Publishing code does not deploy a running Streamlit service. `.env`, databases, virtual environments, and local caches remain excluded. The supplied `prmpt.txt` brief is a local reference and is not needed to run the application.
+
+The overview graphic was created with built-in image generation. Its prompt is recorded in [image-generation.md](docs/image-generation.md).
